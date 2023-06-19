@@ -1,8 +1,10 @@
-from torch.utils.data import  Dataset
+from torch.utils.data import Dataset
 import gzip
 import numpy as np
 import os
-class DealDataset(Dataset):
+import wandb
+
+class MNIST(Dataset):
 
     def __init__(self, folder, data_name, label_name, transform=None):
         self.train_set, self.train_labels = self.load_data(folder, data_name, label_name)
@@ -24,3 +26,13 @@ class DealDataset(Dataset):
             label = np.frombuffer(labelpath.read(), dtype=np.uint8, offset=8)
             data = np.frombuffer(datapath.read(), dtype=np.uint8, offset=16).reshape(len(label), 28, 28)
         return np.array(data), np.array(label)
+
+
+def wandb_init(CFG):
+    run = wandb.init(
+        project=CFG.project,
+        name=f"{CFG.optim}-{CFG.batch_size}",
+        config={k: v for k, v in CFG.items() if '__' not in k},
+        save_code=True
+    )
+    return run
