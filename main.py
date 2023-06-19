@@ -8,6 +8,7 @@ from config import CFG
 from net import MLP
 from tqdm import tqdm,trange
 import numpy as np
+import itertools
 
 def main(CFG):
     trainDataset = MNIST('dataset/MNIST/raw', "train-images-idx3-ubyte.gz",
@@ -91,7 +92,7 @@ def main(CFG):
 
 
 
-
+    final_testloss = 0
     with trange(CFG.epochs) as t:
         for _ in t:
             train_accuracy,train_loss = train(train_loader, model, loss_fn, optimizer)
@@ -99,7 +100,24 @@ def main(CFG):
             if CFG.wandb:
                 run.log({"epoch": _, "train_correct": train_accuracy*100, "train_loss": train_loss, "val_correct": correct*100, "test_loss": test_loss})
             t.set_postfix(train_correct=train_accuracy*100, train_loss=train_loss, val_correct=correct*100, test_loss=test_loss)
+            final_testloss = test_loss
     if CFG.wandb:
         run.finish()
+        torch.save(model.state_dict(), f"weights/{CFG.linear}-{final_testloss}.pt")
 
-main(CFG)
+# 2: Define the search space
+sweep_configuration = {
+    'method': 'random',
+    'metric': {'goal': 'minimize', 'name': 'val_correct'},
+    'parameters':
+    {
+        'x': {'max': 0.1, 'min': 0.01},
+        'batch_size': {'values': [64, 128]},
+        'linear': {'values': [64, 128]},
+     }
+}
+
+for batch_size in [64,128]:
+    for linear in [[28*28,14*14,14*14,14*14,10],[28*28,14*14,14*14,10],[28*28,14*14,10],[28*28,14*14,14*14,14*14,10]]
+    CFG.batch_size = batch_size
+    main(CFG)
