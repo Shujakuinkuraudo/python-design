@@ -12,4 +12,5 @@ CFG.optim_config = {"lr":1e-3, "momentum":0.9}
 CFG.lossfn = torch.nn.CrossEntropyLoss()
 CFG.project = "python-CourseDesign"
 CFG.wandb = True
+CFG.bn = True
 CFG.__optim_function = lambda parameter: eval(CFG.optim)(parameter,**CFG.optim_config)

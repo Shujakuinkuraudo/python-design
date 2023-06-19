@@ -37,7 +37,7 @@ def main(CFG):
     plt.imshow(img)
     plt.show()
 
-    model = MLP(CFG.linear).to(CFG.device)
+    model = MLP(CFG.linear,CFG.bn,CFG.dp).to(CFG.device)
 
     loss_fn = CFG.lossfn
     optimizer = CFG.__optim_function(model.parameters())
@@ -105,19 +105,17 @@ def main(CFG):
         run.finish()
         torch.save(model.state_dict(), f"weights/{CFG.linear}-{final_testloss}.pt")
 
-# 2: Define the search space
-sweep_configuration = {
-    'method': 'random',
-    'metric': {'goal': 'minimize', 'name': 'val_correct'},
-    'parameters':
-    {
-        'x': {'max': 0.1, 'min': 0.01},
-        'batch_size': {'values': [64, 128]},
-        'linear': {'values': [64, 128]},
-     }
-}
 
-for batch_size in [64,128]:
-    for linear in [[28*28,14*14,14*14,14*14,10],[28*28,14*14,14*14,10],[28*28,14*14,10],[28*28,14*14,14*14,14*14,10]]
-    CFG.batch_size = batch_size
-    main(CFG)
+import itertools
+for batch_size in [128,64]:
+    for linear in [[ 784,2500,2000,1500,1000,500,10],[28*28,10000,10],[28*28,14*14,14*14,14*14,10],[28*28,14*14,14*14,10],[28*28,14*14,10],[28*28,14*14,14*14,14*14,14*14,14*14,14*14,14*14,10]]:
+        for optim,optim_config in [("torch.optim.Adam",{"lr":1e-3}),("torch.optim.SGD",{"lr":1e-3, "momentum":0.9})]:
+            for bn,dp in itertools.product([True,False],[0.8,0.1,0.2,0.5,0]):
+                CFG.bn = bn
+                CFG.dp = dp
+                CFG.optim = optim
+                CFG.optim_config = optim_config
+                CFG.batch_size = batch_size
+                CFG.linear = linear
+                CFG.__optim_function = lambda parameter: eval(CFG.optim)(parameter, **CFG.optim_config)
+                main(CFG)
