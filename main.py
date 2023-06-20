@@ -11,6 +11,7 @@ import numpy as np
 import itertools
 
 def main(CFG):
+
     trainDataset = MNIST('dataset/MNIST/raw', "train-images-idx3-ubyte.gz",
                                "train-labels-idx1-ubyte.gz", transform=transforms.ToTensor())
     testDataset = MNIST('dataset/MNIST/raw', "t10k-images-idx3-ubyte.gz",

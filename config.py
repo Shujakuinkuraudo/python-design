@@ -14,3 +14,11 @@ CFG.project = "python-CourseDesign"
 CFG.wandb = True
 CFG.bn = True
 CFG.__optim_function = lambda parameter: eval(CFG.optim)(parameter,**CFG.optim_config)
+
+
+CFG_sweep = EasyDict()
+CFG_sweep.device = "cuda" if torch.cuda.is_available() else "cpu"
+CFG_sweep.epochs = 150
+CFG_sweep.lossfn = "torch.nn.CrossEntropyLoss"
+CFG_sweep.project = "python-CourseDesign"
+CFG_sweep.wandb = True
