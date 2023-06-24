@@ -23,9 +23,6 @@ def upload():
     time2 = (time.time_ns() - time1) / 1e9
     return render_template('index.html', val1=time.time(), time=time2, numbers=numbers)
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
     app.run()
