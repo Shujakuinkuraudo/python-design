@@ -1,12 +1,11 @@
 import torch
 from PIL import Image
 from torchvision import transforms
-import torchvision
 
-from net import MLP
+from utils.net import MLP
 
 
-class predict:
+class Predict:
     def __init__(self):
         self.image = "static/img.jpg"
         self.model = None
@@ -33,7 +32,7 @@ class predict:
             model.fc = torch.nn.Linear(model.fc.in_features, 10)
             model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
             model.to(self.device)
-            model.load_state_dict(torch.load('weights/torchvision.models.resnet18-0.030850677044225255.pt'))
+            model.load_state_dict(torch.load('../weights/torchvision.models.resnet18-0.030850677044225255.pt'))
             model.eval()
             return model
 
@@ -42,7 +41,7 @@ class predict:
             model.fc = torch.nn.Linear(model.fc.in_features, 10)
             model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
             model.to(self.device)
-            model.load_state_dict(torch.load('weights/torchvision.models.resnet50-0.03862229767092837.pt'))
+            model.load_state_dict(torch.load('../weights/torchvision.models.resnet50-0.03862229767092837.pt'))
             model.eval()
             return model
 
@@ -51,7 +50,7 @@ class predict:
             model.fc = torch.nn.Linear(model.fc.in_features, 10)
             model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
             model.to(self.device)
-            model.load_state_dict(torch.load('weights/torchvision.models.resnet101-0.027085693466008875.pt'))
+            model.load_state_dict(torch.load('../weights/torchvision.models.resnet101-0.027085693466008875.pt'))
             model.eval()
             return model
         if model_name == "torchvision.models.resnet152":
@@ -59,7 +58,7 @@ class predict:
             model.fc = torch.nn.Linear(model.fc.in_features, 10)
             model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
             model.to(self.device)
-            model.load_state_dict(torch.load('weights/torchvision.models.resnet152-0.11714016024362901.pt'))
+            model.load_state_dict(torch.load('../weights/torchvision.models.resnet152-0.11714016024362901.pt'))
             model.eval()
             return model
         if "784" in model_name:
@@ -67,28 +66,28 @@ class predict:
             model = None
             if model_name == "[784, 10000, 10]":
                 model = MLP(linears, False, 0.2).to(self.device)
-                model.load_state_dict(torch.load('weights/[784, 10000, 10]-0.9830893987341772.pt'))
+                model.load_state_dict(torch.load('../weights/[784, 10000, 10]-0.9830893987341772.pt'))
             if model_name == "[784, 2500, 2000, 1500, 1000, 500, 10]":
                 model = MLP(linears, False, 0.3046).to(self.device)
                 model.load_state_dict(
-                    torch.load('weights/[784, 2500, 2000, 1500, 1000, 500, 10]-0.9858678343949044.pt'))
+                    torch.load('../weights/[784, 2500, 2000, 1500, 1000, 500, 10]-0.9858678343949044.pt'))
             if model_name == "[784, 196, 196, 196, 196, 196, 196, 196, 10]":
                 model = MLP(linears, False, 0.2241).to(self.device)
                 model.load_state_dict(
-                    torch.load('weights/[784, 196, 196, 196, 196, 196, 196, 196, 10]-0.9800955414012739.pt'))
+                    torch.load('../weights/[784, 196, 196, 196, 196, 196, 196, 196, 10]-0.9800955414012739.pt'))
             if model_name == "[784, 196, 196, 196, 10]":
                 model = MLP(linears, False, 0.2).to(self.device)
-                model.load_state_dict(torch.load('weights/[784, 196, 196, 196, 10]-0.9869625796178344.pt'))
+                model.load_state_dict(torch.load('../weights/[784, 196, 196, 196, 10]-0.9869625796178344.pt'))
             if model_name == "[784, 196, 196, 10]":
                 model = MLP(linears, False, 0.2).to(self.device)
-                model.load_state_dict(torch.load('weights/[784, 196, 196, 10]-0.9871616242038217.pt'))
+                model.load_state_dict(torch.load('../weights/[784, 196, 196, 10]-0.9871616242038217.pt'))
             if model_name == "[784, 196, 10]":
                 model = MLP(linears, False, 0.186).to(self.device)
-                model.load_state_dict(torch.load('weights/[784, 196, 10]-0.9868473101265823.pt'))
+                model.load_state_dict(torch.load('../weights/[784, 196, 10]-0.9868473101265823.pt'))
             model.eval()
             return model
 
 
 if __name__ == "__main__":
-    p = predict()
+    p = Predict()
     print(p())

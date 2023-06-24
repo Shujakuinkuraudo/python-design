@@ -5,9 +5,9 @@ from torchvision import transforms
 from tqdm import trange
 
 import wandb
-from config import CFG_sweep
-from net import MLP
-from utils import MNIST, wandb_init_sweep
+from utils.config import CFG_sweep
+from utils.net import MLP
+from utils.tools import MNIST, wandb_init_sweep
 
 sweep_configuration = {
     'method': 'bayes',

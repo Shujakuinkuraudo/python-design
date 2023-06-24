@@ -4,8 +4,8 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import trange
 
-from config import CFG_RES
-from utils import MNIST, wandb_init
+from utils.config import CFG_RES
+from utils.tools import MNIST, wandb_init
 
 trainDataset = MNIST('dataset/MNIST/raw', "train-images-idx3-ubyte.gz",
                      "train-labels-idx1-ubyte.gz", transform=transforms.ToTensor())

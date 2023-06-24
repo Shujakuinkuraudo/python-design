@@ -1,12 +1,12 @@
 import os
 import time
-from flask import Flask, request, render_template, send_from_directory
-from eval import predict
+from flask import Flask, request, render_template
+from utils.predict import Predict
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static'
 
-p = predict()
+p = Predict()
 
 @app.route('/')
 def index():
