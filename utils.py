@@ -1,8 +1,11 @@
-from torch.utils.data import Dataset
 import gzip
-import numpy as np
 import os
+
+import numpy as np
+from torch.utils.data import Dataset
+
 import wandb
+
 
 class MNIST(Dataset):
 
@@ -37,6 +40,7 @@ def wandb_init(CFG):
         save_code=True
     )
     return run
+
 
 def wandb_init_sweep(CFG):
     run = wandb.init(
