@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import trange
 
-from config import CFG_CNN
+from config import CFG_RES
 from utils import MNIST, wandb_init
 
 trainDataset = MNIST('dataset/MNIST/raw', "train-images-idx3-ubyte.gz",
@@ -102,5 +102,5 @@ def main(CFG):
 
 
 for model in ["torchvision.models.resnet18","torchvision.models.resnet50","torchvision.models.resnet101","torchvision.models.resnet152"]:
-    CFG_CNN.model = model
-    main(CFG_CNN)
+    CFG_RES.model = model
+    main(CFG_RES)

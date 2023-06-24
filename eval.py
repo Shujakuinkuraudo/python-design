@@ -1,6 +1,7 @@
 import torch
 from PIL import Image
 from torchvision import transforms
+import torchvision
 
 from net import MLP
 

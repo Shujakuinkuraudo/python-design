@@ -32,11 +32,10 @@ class MNIST(Dataset):
 
 
 def wandb_init(CFG):
-    config = {k: v for k, v in CFG.items() if '__' not in k}
     run = wandb.init(
         project=CFG.project,
         name=f"{CFG.optim}-{CFG.batch_size}",
-        config=config,
+        config={k: v for k, v in CFG.items() if '__' not in k},
         save_code=True
     )
     return run
