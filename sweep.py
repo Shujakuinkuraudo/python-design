@@ -14,23 +14,32 @@ sweep_configuration = {
     'metric': {'goal': 'maximize', 'name': 'val_correct'},
     'parameters':
         {
-            'batch_size': {'values': [128, 64]
+            'batch_size': {'values': [1, 128, 64]
                            },
             'linear': {'values': [[784, 2500, 2000, 1500, 1000, 500, 10],
                                   [28 * 28, 10000, 10],
                                   [28 * 28, 14 * 14, 14 * 14, 14 * 14, 10],
-                                  [28 * 28, 14 * 14, 14 * 14, 10],
-                                  [28 * 28, 14 * 14, 10],
-                                  [28 * 28, 14 * 14, 14 * 14, 14 * 14, 14 * 14, 14 * 14, 14 * 14, 14 * 14, 10]]
+                                  [28 * 28, 14 * 14, 14 * 14, 10]]
                        },
             'optim_optim_config': {'values': [("torch.optim.Adam", {"lr": 1e-3}),
-                                              ("torch.optim.SGD", {"lr": 1e-3, "momentum": 0.9})]
+                                              ("torch.optim.SGD", {"lr": 1e-3, "momentum": 0.9}),
+                                              ("torch.optim.Adadelta", {"lr": 1e-2}),
+                                              ("torch.optim.Adagrad", {"lr": 1e-2}),
+                                              ("torch.optim.Adamax", {"lr": 1e-3}),
+                                              ("torch.optim.RMSprop", {"lr": 1e-2}),
+                                              ]
                                    },
-            'bn': {'values': [True, False]
-                   },
-            'dp': {'max': 0.6,
-                   'min': 0.0
-                   }
+            # 'swa_model': {'values':["torch.optim.swa_utils.AveragedModel"]
+            # },
+            'scheduler_scheduler_config': {'values': [(None, None),
+                                                      ("torch.optim.lr_scheduler.CosineAnnealingLR", {"T_max": 150}),
+                                                      ("torch.optim.lr_scheduler.StepLR", {"step_size": 30}),
+                                                      ("torch.optim.lr_scheduler.ExponentialLR", {"gamma": 0.999}),
+                                                      ]
+                                           },
+
+            'bn': {'values': [True, False]},
+            'dp': {'values': [0, 0.1, 0.2, 0.3, 0.4]}
         }
 }
 
@@ -61,6 +70,12 @@ def main():
     optim, optim_config = run.config.optim_optim_config
     optimizer = eval(optim)(model.parameters(), **optim_config)
 
+    # swa = eval(run.config.swa_model)(model)
+
+    scheduler, scheduler_config = run.config.scheduler_scheduler_config
+    if scheduler:
+        scheduler = eval(scheduler)(optimizer, **scheduler_config)
+
     run.watch(model, log='all')
     Total_params = 0
     Trainable_params = 0
@@ -77,10 +92,10 @@ def main():
         batch_loss = []
         batch_correct = []
         for i, (X, y) in enumerate(dataloader):
+            optimizer.zero_grad()
             X, y = X.to(run.config.device), y.to(run.config.device)
             y_pred = model(X.view(-1, 28 * 28))
             loss = loss_fn(y_pred, y)
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             batch_loss.append(loss.item())
@@ -108,10 +123,16 @@ def main():
         return test_correct, test_loss
 
     final_val_correct = 0
+    correct_max, correct_max_iter = 0, 0
     with trange(run.config.epochs) as t:
         for _ in t:
             train_accuracy, train_loss = train(train_loader, model, loss_fn, optimizer)
             correct, test_loss = validation(test_loader, model, loss_fn)
+            if correct > correct_max:
+                correct_max = correct
+                correct_max_iter = _
+            if scheduler:
+                scheduler.step()
             if run.config.wandb:
                 run.log({"epoch": _, "train_correct": train_accuracy * 100, "train_loss": train_loss,
                          "val_correct": correct * 100, "test_loss": test_loss})
@@ -119,6 +140,7 @@ def main():
                           test_loss=test_loss)
             final_val_correct = correct
     if run.config.wandb:
+        run.log({"correct_max": correct_max, "correct_max_iter": correct_max_iter})
         run.finish()
         torch.save(model.state_dict(), f"weights/{run.config.linear}-{final_val_correct}.pt")
 

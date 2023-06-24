@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MNIST</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全局样式 */
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* 表单样式 */
+        form {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+        }
+
+        select {
+            margin: 10px 0;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        input[type="submit"] {
+            margin: 10px 0;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: #fff;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #3e8e41;
+        }
+
+        img {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        ul {
+            margin: 20px 0;
+            list-style: none;
+        }
+
+        li {
+            margin: 10px 0;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f2f2f2;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="image">请选择图片:</label>
+        <input type="file" name="image" id="image">
+
+        <label for="core">请选择模型:</label>
+        <select name="core" id="core">
+            <option value="torchvision.models.resnet18">resnet18</option>
+            <option value="torchvision.models.resnet50">resnet50</option>
+            <option value="torchvision.models.resnet101">resnet101</option>
+            <option value="torchvision.models.resnet152">resnet152</option>
+            <option value="[784, 10000, 10]">[784, 10000, 10]</option>
+            <option value="[784, 2500, 2000, 1500, 1000, 500, 10]">[784, 2500, 2000, 1500, 1000, 500, 10]</option>
+            <option value="[784, 196, 196, 196, 196, 196, 196, 196, 10]">[784, 196, 196, 196, 196, 196, 196, 196, 10]</option>
+            <option value="[784, 196, 196, 196, 10]">[784, 196, 196, 196, 10]</option>
+            <option value="[784, 196, 196, 10]">[784, 196, 196, 10]</option>
+            <option value="[784, 196, 10]">[784, 196, 10]</option>
+        </select>
+
+        <input type="submit" value="上传">
+    </form>
+
+    <img src="{{ url_for('static', filename='img.jpg' ,_t=val1) }}" alt="上传的图片" >
+    <div style="text-align: center;">耗时:{{time}}秒</div>
+
+    <ul>
+        {% for number in numbers %}
+            <li>{{ number }}</li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>

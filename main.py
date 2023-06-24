@@ -4,14 +4,13 @@ from torchvision import transforms
 import torchvision
 import matplotlib.pyplot as plt
 from utils import MNIST,wandb_init
-from config import CFG
-from net import MLP
+from config import CFG_CNN
+from net import MLP,CNN,RES
 from tqdm import tqdm,trange
 import numpy as np
 import itertools
 
 def main(CFG):
-
     trainDataset = MNIST('dataset/MNIST/raw', "train-images-idx3-ubyte.gz",
                                "train-labels-idx1-ubyte.gz", transform=transforms.ToTensor())
     testDataset = MNIST('dataset/MNIST/raw', "t10k-images-idx3-ubyte.gz",
@@ -30,15 +29,19 @@ def main(CFG):
     )
 
 
+    # images, labels = next(iter(train_loader))
+    # img = torchvision.utils.make_grid(images)
+    # img = img.numpy().transpose(1, 2, 0)
+    # print(labels)
+    # plt.imshow(img)
+    # plt.show()
 
-    images, labels = next(iter(train_loader))
-    img = torchvision.utils.make_grid(images)
-    img = img.numpy().transpose(1, 2, 0)
-    print(labels)
-    plt.imshow(img)
-    plt.show()
+    model = eval(CFG.model)()
+    # 修改全连接层的输出
+    model.fc = torch.nn.Linear(model.fc.in_features, 10)
+    model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 
-    model = MLP(CFG.linear,CFG.bn,CFG.dp).to(CFG.device)
+    model.to(CFG.device)
 
     loss_fn = CFG.lossfn
     optimizer = CFG.__optim_function(model.parameters())
@@ -62,7 +65,7 @@ def main(CFG):
         batch_correct = []
         for i,(X, y) in enumerate(dataloader):
             X, y = X.to(CFG.device), y.to(CFG.device)
-            y_pred = model(X.view(-1,28*28))
+            y_pred = model(X)
             loss = loss_fn(y_pred, y)
             optimizer.zero_grad()
             loss.backward()
@@ -83,7 +86,7 @@ def main(CFG):
         with torch.no_grad():
             for batch, (X, y) in enumerate(dataloader):
                 X, y = X.to(CFG.device), y.to(CFG.device)
-                pred = model(X.view(-1, 28*28))
+                pred = model(X)
                 batch_loss.append(loss_fn(pred, y).item())
                 batch_correct.append((pred.argmax(1) == y).sum().item() / len(X))
                 size += len(X)
@@ -92,31 +95,25 @@ def main(CFG):
         return test_correct,test_loss
 
 
-
+    correct_max, correct_max_iter = 0, 0
     final_testloss = 0
     with trange(CFG.epochs) as t:
         for _ in t:
             train_accuracy,train_loss = train(train_loader, model, loss_fn, optimizer)
             correct,test_loss = validation(test_loader, model, loss_fn)
+            if correct > correct_max:
+                correct_max = correct
+                correct_max_iter = _
             if CFG.wandb:
                 run.log({"epoch": _, "train_correct": train_accuracy*100, "train_loss": train_loss, "val_correct": correct*100, "test_loss": test_loss})
             t.set_postfix(train_correct=train_accuracy*100, train_loss=train_loss, val_correct=correct*100, test_loss=test_loss)
             final_testloss = test_loss
     if CFG.wandb:
+        run.log({"correct_max": correct_max, "correct_max_iter": correct_max_iter})
         run.finish()
-        torch.save(model.state_dict(), f"weights/{CFG.linear}-{final_testloss}.pt")
+        torch.save(model.state_dict(), f"weights/{CFG.model}-{final_testloss}.pt")
 
 
-import itertools
-for batch_size in [128,64]:
-    for linear in [[ 784,2500,2000,1500,1000,500,10],[28*28,10000,10],[28*28,14*14,14*14,14*14,10],[28*28,14*14,14*14,10],[28*28,14*14,10],[28*28,14*14,14*14,14*14,14*14,14*14,14*14,14*14,10]]:
-        for optim,optim_config in [("torch.optim.Adam",{"lr":1e-3}),("torch.optim.SGD",{"lr":1e-3, "momentum":0.9})]:
-            for bn,dp in itertools.product([True,False],[0.8,0.1,0.2,0.5,0]):
-                CFG.bn = bn
-                CFG.dp = dp
-                CFG.optim = optim
-                CFG.optim_config = optim_config
-                CFG.batch_size = batch_size
-                CFG.linear = linear
-                CFG.__optim_function = lambda parameter: eval(CFG.optim)(parameter, **CFG.optim_config)
-                main(CFG)
+for model in ["torchvision.models.resnet18","torchvision.models.resnet50","torchvision.models.resnet101","torchvision.models.resnet152"]:
+    CFG_CNN.model = model
+    main(CFG_CNN)
